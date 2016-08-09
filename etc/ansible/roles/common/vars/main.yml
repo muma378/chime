@@ -1,0 +1,8 @@
+---
+install_prefix: /usr/local
+tmp_prefix: /tmp
+mesos_url: http://www.apache.org/dist/mesos/0.28.2/mesos-0.28.2.tar.gz 
+mesos_package: mesos-0.28.2.tar.gz
+mesos: mesos-0.28.2
+build_path: {{ install_prefix }}/{{ mesos }}/build
+

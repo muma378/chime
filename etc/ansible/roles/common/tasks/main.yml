@@ -1,0 +1,56 @@
+---
+- name: update apt-get
+  apt: update_cache=yes cache_valid_time=3600
+  become: true
+
+- name: install utility tools
+  apt: name={{ item }} state=present
+  with_items:
+    - git
+    - wget
+    - tar
+  become: true
+
+- name: install openjdk
+  apt: name=openjdk-7-jdk
+  become: true
+
+- name: install autotools
+  apt: name={{ item }}
+  with_items:
+    - autoconf 
+    - libtool
+  become: true
+
+- name: install mesos dependencies
+  apt: name={{ item }}
+  with_items:
+    - build-essential
+    - python-dev
+    - libcurl4-nss-dev
+    - libsasl2-dev
+    - libsasl2-modules
+    - maven
+    - libapr1-dev
+    - libsvn-dev
+    - zlib1g-dev
+  become: true
+
+- name: get mesos
+  uri: 
+    url: {{ mesos_url }}
+    method: GET
+    dest: {{ tmp_prefix }}
+
+- name: decompressing mesos
+  unarchive: src={{ tmp_prefix }}/{{ mesos_package }} dest={{ install_prefix }} copy=no
+
+- name: make directory build
+  file: path={{ build_path }} state=directory mode=0755
+
+- name: configure
+  command: ../configure chdir={{ build_path }}
+  
+- name: compile and build
+  make: chdir={{ build_path }} target=install
+  become: true
