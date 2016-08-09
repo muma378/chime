@@ -1,0 +1,101 @@
+#!/bin/sh
+#
+# /etc/init.d/chime
+# Subsystem file for server Chime
+#
+# chkconfig: 2345 95 05
+# description: Chime server daemon
+#
+# processname: Chime
+# config: /etc/sysconfig/chime
+# pidfile: /var/run/chime.pid
+
+# source function library
+[ -f /etc/init.d/functions ] && . /etc/init.d/functions
+
+# pull in sysconfig settings
+[ -f /etc/sysconfig/chime-env.sh ] && . /etc/sysconfig/chime-env.sh
+
+RETVAL=0
+prog="chime"
+
+source ./chime.conf
+
+function find_home() {
+    path=`find ${USER_HOME} -maxdepth 1 -name $"${1}*"` 
+    if [ -z ${path} ];then
+        echo $"Unable to find an avaible bin for $1"
+        exit 1;
+    fi
+    echo ${path}
+}
+
+
+export MESOS_HOME=`find_home mesos`
+export HADOOP_HOME=`find_home hadoop`
+HADOOP_DAEMON=$HADOOP_HOME/bin/hadoop-daemon.sh
+
+
+for master in `echo $masters | tr ';' ' '`;do
+    if [ "$HOSTNAME" == "$master" ];then
+        MASTER=1
+    fi
+done
+for slave in `echo $slaves | tr ';' ' '`;do
+    if [ "$HOSTNAME" == "$slave" ];then
+        SLAVE=1
+    fi
+done
+
+
+if [ -f ${MESOS_DAEMON} && -f ${HADOOP_DAEMON} ];then
+    
+fi
+
+start() {
+    echo $"Starting $prog:"
+
+    # starting mesos and hdfs
+    if [ -z ${MASTER} ];then
+        ${MESOS_DAEMON} mesos-master
+        ${HADOOP_DAEMON} start namenode
+    fi
+    if [ -z ${SLAVE} ];then
+        ${MESOS_DAEMON} mesos-slave
+        ${HADOOP_DAEMON} start datanode
+    fi
+}
+
+stop() {
+    echo $"Stoping $prog"
+
+    #stop mesos and hdfs
+    if [ -z ${MASTER} ];then
+        killall mesos-master
+        ${HADOOP_DAEMON} stop namenode        
+    fi
+    if [ -z ${SLAVE} ];then
+        killall mesos-slave
+        ${HADOOP_DAEMON} stop datanode
+    fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    restart)
+        reload
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|reload}"
+        RETVAL=1
+esac
+exit $RETVAL
