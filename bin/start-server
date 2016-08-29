@@ -1,0 +1,8 @@
+#!/bin/sh
+
+
+export CHIME_HOME=`pwd`
+TIMEOUT=600
+
+cd $CHIME_HOME/src
+gunicorn -t ${TIMEOUT} http.app

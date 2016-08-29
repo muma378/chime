@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+export CHIME_HOME=`pwd`
+export LD_LIBRARY_PATH=/usr/local/lib
+
+MESOS_BUILD_DIR=/usr/local/mesos-0.28.2/build
+DISTRIBUTE=`echo ${MESOS_BUILD_DIR}/3rdparty/distribute-*/`
+MESOS_EGGS=$(find ${MESOS_BUILD_DIR}/src/python/dist -name "*.egg" | tr "\\n" ":")
+export PYTHONPATH=$PYTHONPATH:${DISTRIBUTE}:${MESOS_EGGS}
+
+cd ${CHIME_HOME}/src
+python ./main.py
+
